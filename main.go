@@ -43,7 +43,7 @@ func get_file_hash(path string) string {
 	return hex.EncodeToString(hash.Sum(nil))
 }
 
-func scan_dir(files *[]file0, dir string, subdir string) {
+func scan(files *[]file0, dir string, subdir string) {
 	entries, err := ioutil.ReadDir(filepath.Join(dir, subdir))
 
 	if err != nil {
@@ -56,7 +56,7 @@ func scan_dir(files *[]file0, dir string, subdir string) {
 		}
 
 		if entry.IsDir() {
-			scan_dir(files, dir, filepath.Join(subdir, entry.Name()))
+			scan(files, dir, filepath.Join(subdir, entry.Name()))
 			continue
 		}
 
@@ -121,14 +121,14 @@ func search_file(files []file0, path string, hash string) (bool, string, int) {
 	return false, "", -1
 }
 
-func create_package(files []file0, version string, dir string) {
+func pack(files []file0, version string, dir string) {
 	err := os.MkdirAll(filepath.Join(dir, PACKAGE_PATH), os.ModePerm)
 
 	if err != nil {
 		panic(err)
 	}
 
-	existing_files := read_packages(dir, []string{version})
+	existing_files := inspect(dir, []string{version})
 
 	output, err := os.Create(filepath.Join(dir, PACKAGE_PATH, version))
 
@@ -195,7 +195,7 @@ func has_version(exclude_versions []string, version string) bool {
 	return false
 }
 
-func read_packages(dir string, exclude_versions []string) []file0 {
+func inspect(dir string, exclude_versions []string) []file0 {
 	package_path := filepath.Join(dir, PACKAGE_PATH)
 	package_entries, err := ioutil.ReadDir(package_path)
 
@@ -299,9 +299,9 @@ func main() {
 
 	if action == "package" {
 		files := []file0{}
-		scan_dir(&files, dir, "")
+		scan(&files, dir, "")
 		pack_version := get_version(files)
-		create_package(files, pack_version, dir)
+		pack(files, pack_version, dir)
 		fmt.Println("📦", pack_version)
 	}
 
@@ -310,7 +310,7 @@ func main() {
 	}
 
 	if action == "inspect" {
-		files := read_packages(dir, []string{})
+		files := inspect(dir, []string{})
 		for _, file := range files {
 			fmt.Printf(
 				"%-20s\t%s\t%s\t%-5d\t%-5d\n",
