@@ -66,11 +66,28 @@ func scan_dir(files *[]file2, dir string, subdir string) {
 	}
 }
 
-func get_version(files []file2) string {
-	hash := md5.New()
-
+func build_index(files []file2) string {
+	index_str := ""
 	for _, file := range files {
-		hash.Write(file.hash)
+		index_str = index_str + fmt.Sprintf(
+			"%s\t%x\t%d\t%s\n",
+			file.path,
+			file.hash,
+			file.size,
+			file.version,
+		)
+	}
+	return index_str
+}
+
+func get_version(files []file2) string {
+	index_str := build_index(files)
+
+	hash := md5.New()
+	_, err := io.WriteString(hash, index_str)
+
+	if err != nil {
+		panic(err)
 	}
 
 	return hex.EncodeToString(hash.Sum(nil))
