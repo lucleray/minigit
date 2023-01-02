@@ -15,9 +15,9 @@ import (
 type file0 struct {
 	path    string
 	hash    string
+	version string
 	offset  int
 	size    int64
-	version string
 }
 
 const PACKAGE_PATH = ".minigit"
@@ -64,7 +64,7 @@ func scan_dir(files *[]file0, dir string, subdir string) {
 		file_offset := -1
 		file_size := entry.Size()
 
-		*files = append(*files, file0{file_path, file_hash, file_offset, file_size, CURRENT_VERSION})
+		*files = append(*files, file0{file_path, file_hash, CURRENT_VERSION, file_offset, file_size})
 	}
 }
 
@@ -73,12 +73,12 @@ func build_index(files []file0) string {
 
 	for i, file := range files {
 		index_str = index_str + fmt.Sprintf(
-			"%s\t%s\t%d\t%d\t%s",
+			"%s\t%s\t%s\t%d\t%d",
 			file.path,
 			file.hash,
+			file.version,
 			file.offset,
 			file.size,
-			file.version,
 		)
 
 		if i != len(files)-1 {
@@ -204,11 +204,16 @@ func read_packages(dir string, exclude_versions []string) []file0 {
 			}
 
 			// format is:
-			// <path>	<hash> <offset> <size> <version>
+			// <path>	<hash> <version> <offset> <size>
 			file_infos_str := strings.Split(file_str, "\t")
 
-			file_offset, err_offset := strconv.Atoi(file_infos_str[2])
-			file_size, err_size := strconv.Atoi(file_infos_str[3])
+			version := file_infos_str[2]
+			if version == CURRENT_VERSION {
+				version = package_entry.Name()
+			}
+
+			file_offset, err_offset := strconv.Atoi(file_infos_str[3])
+			file_size, err_size := strconv.Atoi(file_infos_str[4])
 
 			if err_offset != nil {
 				panic(err_offset)
@@ -217,17 +222,12 @@ func read_packages(dir string, exclude_versions []string) []file0 {
 				panic(err_size)
 			}
 
-			version := file_infos_str[3]
-			if file_infos_str[4] == CURRENT_VERSION {
-				version = package_entry.Name()
-			}
-
 			file := file0{
 				file_infos_str[0],
 				file_infos_str[1],
+				version,
 				file_offset,
 				int64(file_size),
-				version,
 			}
 
 			files = append(files, file)
