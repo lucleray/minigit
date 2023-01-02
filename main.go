@@ -272,14 +272,24 @@ func read_packages(dir string, exclude_versions []string) []file0 {
 	return files
 }
 
+func unpack(version string, dir string) {
+	// TODO: implement
+	fmt.Println("Unpacking version", version)
+}
+
 func main() {
 	action := "package"
 	dir := ""
+	unpack_version := ""
 
 	os_args := os.Args[1:]
 	for _, arg := range os_args {
 		if strings.HasPrefix(arg, "--dir=") {
 			dir = arg[len("--dir="):]
+		}
+
+		if strings.HasPrefix(arg, "--unpack=") {
+			unpack_version = arg[len("--unpack="):]
 		}
 
 		if arg == "--inspect" || arg == "-i" {
@@ -290,9 +300,13 @@ func main() {
 	if action == "package" {
 		files := []file0{}
 		scan_dir(&files, dir, "")
-		version := get_version(files)
-		create_package(files, version, dir)
-		fmt.Println("📦", version)
+		pack_version := get_version(files)
+		create_package(files, pack_version, dir)
+		fmt.Println("📦", pack_version)
+	}
+
+	if len(unpack_version) > 0 {
+		unpack(unpack_version, dir)
 	}
 
 	if action == "inspect" {

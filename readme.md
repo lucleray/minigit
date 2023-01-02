@@ -14,6 +14,11 @@ To inspect an existing package, you can use:
 minigit --inspect
 ```
 
+To unpack a version:
+```
+minigit --unpack=<version>
+```
+
 ### Format of a package entry
 
 Each package entry is composed of an index followed by file contents.
