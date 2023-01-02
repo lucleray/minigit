@@ -12,7 +12,7 @@ import (
 	"strings"
 )
 
-type file2 struct {
+type file0 struct {
 	path    string
 	hash    string
 	offset  int
@@ -42,7 +42,7 @@ func get_file_hash(path string) string {
 	return hex.EncodeToString(hash.Sum(nil))
 }
 
-func scan_dir(files *[]file2, dir string, subdir string) {
+func scan_dir(files *[]file0, dir string, subdir string) {
 	entries, err := ioutil.ReadDir(filepath.Join(dir, subdir))
 
 	if err != nil {
@@ -64,11 +64,11 @@ func scan_dir(files *[]file2, dir string, subdir string) {
 		file_offset := -1
 		file_size := entry.Size()
 
-		*files = append(*files, file2{file_path, file_hash, file_offset, file_size, CURRENT_VERSION})
+		*files = append(*files, file0{file_path, file_hash, file_offset, file_size, CURRENT_VERSION})
 	}
 }
 
-func build_index(files []file2) string {
+func build_index(files []file0) string {
 	index_str := ""
 
 	for i, file := range files {
@@ -89,7 +89,7 @@ func build_index(files []file2) string {
 	return index_str
 }
 
-func get_version(files []file2) string {
+func get_version(files []file0) string {
 	index_str := build_index(files)
 
 	hash := md5.New()
@@ -102,7 +102,7 @@ func get_version(files []file2) string {
 	return hex.EncodeToString(hash.Sum(nil))
 }
 
-func search_file(files []file2, path string, hash string) string {
+func search_file(files []file0, path string, hash string) string {
 	for _, file := range files {
 		if hash == file.hash && path == file.path {
 			return file.version
@@ -112,7 +112,7 @@ func search_file(files []file2, path string, hash string) string {
 	return CURRENT_VERSION
 }
 
-func create_package(files []file2, version string, dir string) {
+func create_package(files []file0, version string, dir string) {
 	err := os.MkdirAll(filepath.Join(dir, PACKAGE_PATH), os.ModePerm)
 
 	if err != nil {
@@ -160,7 +160,7 @@ func has_version(exclude_versions []string, version string) bool {
 	return false
 }
 
-func read_packages(dir string, exclude_versions []string) []file2 {
+func read_packages(dir string, exclude_versions []string) []file0 {
 	package_path := filepath.Join(dir, PACKAGE_PATH)
 	package_entries, err := ioutil.ReadDir(package_path)
 
@@ -168,7 +168,7 @@ func read_packages(dir string, exclude_versions []string) []file2 {
 		panic(err)
 	}
 
-	files := []file2{}
+	files := []file0{}
 
 	for _, package_entry := range package_entries {
 		if has_version(exclude_versions, package_entry.Name()) {
@@ -222,7 +222,7 @@ func read_packages(dir string, exclude_versions []string) []file2 {
 				version = package_entry.Name()
 			}
 
-			file := file2{
+			file := file0{
 				file_infos_str[0],
 				file_infos_str[1],
 				file_offset,
@@ -253,7 +253,7 @@ func main() {
 	}
 
 	if action == "package" {
-		files := []file2{}
+		files := []file0{}
 		scan_dir(&files, dir, "")
 		version := get_version(files)
 		create_package(files, version, dir)
