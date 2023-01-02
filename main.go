@@ -102,14 +102,14 @@ func get_version(files []file0) string {
 	return hex.EncodeToString(hash.Sum(nil))
 }
 
-func search_file(files []file0, path string, hash string) string {
+func search_file(files []file0, path string, hash string) (bool, string, int) {
 	for _, file := range files {
 		if hash == file.hash && path == file.path {
-			return file.version
+			return true, file.version, file.offset
 		}
 	}
 
-	return CURRENT_VERSION
+	return false, "", -1
 }
 
 func create_package(files []file0, version string, dir string) {
@@ -129,8 +129,20 @@ func create_package(files []file0, version string, dir string) {
 
 	defer output.Close()
 
+	current_offset := 0
+
 	for i, file := range files {
-		files[i].version = search_file(existing_files, file.path, file.hash)
+		found, version, offset := search_file(existing_files, file.path, file.hash)
+
+		if found {
+			files[i].version = version
+			files[i].offset = offset
+		} else {
+			files[i].version = CURRENT_VERSION
+			files[i].offset = current_offset + len("\n") + len(CURRENT_VERSION)
+			current_offset = files[i].offset + int(file.size)
+		}
+
 	}
 
 	output.WriteString(build_index(files))
