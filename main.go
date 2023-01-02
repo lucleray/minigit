@@ -256,7 +256,7 @@ func main() {
 		files := read_packages(dir, []string{})
 
 		for _, file := range files {
-			fmt.Printf("%-20s\t%x\t%-5d\t%s\n", file.path, file.hash, file.size, file.version)
+			fmt.Printf("%-20s\t%s\t%-5d\t%s\n", file.path, file.hash, file.size, file.version)
 		}
 	}
 }
