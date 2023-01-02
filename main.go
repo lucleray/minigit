@@ -200,7 +200,7 @@ func read_packages(dir string) []file2 {
 			}
 
 			version := file_infos_str[3]
-			if file_infos_str[3] == "~" {
+			if file_infos_str[3] == CURRENT_VERSION {
 				version = package_entry.Name()
 			}
 
