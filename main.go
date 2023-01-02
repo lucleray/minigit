@@ -132,14 +132,14 @@ func create_package(files []file2, version string, dir string) {
 
 	defer output.Close()
 
-	for _, file := range files {
+	for i, file := range files {
 		existing_file_pointer := search_file(existing_files, file.hash)
 		if existing_file_pointer != nil {
-			fmt.Println("found existing file for " + file.path)
 			existing_file := *existing_file_pointer
+
+			// TODO: refactor to something better
 			file.version = existing_file.version
-		} else {
-			fmt.Println("did not find existing file for " + file.path)
+			files[i].version = existing_file.version
 		}
 
 		file_entry := fmt.Sprintf("%s\t%x\t%d\t%s\n", file.path, file.hash, file.size, file.version)
