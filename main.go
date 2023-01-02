@@ -114,7 +114,7 @@ func create_package(files []file0, version string, dir string) {
 	}
 }
 
-func read_package(dir string) []file1 {
+func read_packages(dir string) []file1 {
 	package_path := filepath.Join(dir, PACKAGE_PATH)
 	package_entries, err := ioutil.ReadDir(package_path)
 
@@ -201,7 +201,7 @@ func main() {
 	}
 
 	if action == "inspect" {
-		files := read_package(dir)
+		files := read_packages(dir)
 
 		for _, file := range files {
 			fmt.Printf("%-20s\t%x\t%-5d\t%s\n", file.path, file.hash, file.size, file.version)
