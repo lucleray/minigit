@@ -68,15 +68,21 @@ func scan_dir(files *[]file2, dir string, subdir string) {
 
 func build_index(files []file2) string {
 	index_str := ""
-	for _, file := range files {
+
+	for i, file := range files {
 		index_str = index_str + fmt.Sprintf(
-			"%s\t%s\t%d\t%s\n",
+			"%s\t%s\t%d\t%s",
 			file.path,
 			file.hash,
 			file.size,
 			file.version,
 		)
+
+		if i != len(files)-1 {
+			index_str = index_str + "\n"
+		}
 	}
+
 	return index_str
 }
 
@@ -121,15 +127,10 @@ func create_package(files []file2, version string, dir string) {
 	defer output.Close()
 
 	for i, file := range files {
-		version := search_file(existing_files, file.path, file.hash)
-
-		// TODO: refactor to something better
-		file.version = version
-		files[i].version = version
-
-		file_entry := fmt.Sprintf("%s\t%s\t%d\t%s\n", file.path, file.hash, file.size, file.version)
-		output.WriteString(file_entry)
+		files[i].version = search_file(existing_files, file.path, file.hash)
 	}
+
+	output.WriteString(build_index(files))
 
 	for _, file := range files {
 		if file.version != CURRENT_VERSION {
