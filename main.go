@@ -139,13 +139,12 @@ func create_package(files []file0, version string, dir string) {
 			files[i].offset = offset
 		} else {
 			files[i].version = CURRENT_VERSION
-			files[i].offset = current_offset + len("\n") + len(CURRENT_VERSION)
+			files[i].offset = current_offset
 			current_offset = files[i].offset + int(file.size)
 		}
-
 	}
 
-	output.WriteString(build_index(files))
+	output.WriteString(build_index(files) + "\n~\n")
 
 	for _, file := range files {
 		if file.version != CURRENT_VERSION {
@@ -158,7 +157,6 @@ func create_package(files []file0, version string, dir string) {
 			panic(err)
 		}
 
-		output.WriteString("\n" + CURRENT_VERSION)
 		io.Copy(output, input)
 	}
 }
