@@ -12,13 +12,7 @@ import (
 	"strings"
 )
 
-type file0 struct {
-	path string
-	hash []byte
-	size int64
-}
-
-type file1 struct {
+type file2 struct {
 	path    string
 	hash    []byte
 	size    int64
@@ -26,6 +20,7 @@ type file1 struct {
 }
 
 const PACKAGE_PATH = ".minigit"
+const CURRENT_VERSION = "~"
 
 func get_file_hash(path string) []byte {
 	file, err := os.Open(path)
@@ -46,7 +41,7 @@ func get_file_hash(path string) []byte {
 	return hash.Sum(nil)
 }
 
-func scan_dir(files *[]file0, dir string, subdir string) {
+func scan_dir(files *[]file2, dir string, subdir string) {
 	entries, err := ioutil.ReadDir(filepath.Join(dir, subdir))
 
 	if err != nil {
@@ -67,11 +62,11 @@ func scan_dir(files *[]file0, dir string, subdir string) {
 		file_hash := get_file_hash(filepath.Join(dir, subdir, entry.Name()))
 		file_size := entry.Size()
 
-		*files = append(*files, file0{file_path, file_hash, file_size})
+		*files = append(*files, file2{file_path, file_hash, file_size, CURRENT_VERSION})
 	}
 }
 
-func get_version(files []file0) string {
+func get_version(files []file2) string {
 	hash := md5.New()
 
 	for _, file := range files {
@@ -81,9 +76,8 @@ func get_version(files []file0) string {
 	return hex.EncodeToString(hash.Sum(nil))
 }
 
-func search_file(files []file1, hash []byte) *file1 {
+func search_file(files []file2, hash []byte) *file2 {
 	for _, file := range files {
-
 		if len(hash) != len(file.hash) {
 			continue
 		}
@@ -104,7 +98,7 @@ func search_file(files []file1, hash []byte) *file1 {
 	return nil
 }
 
-func create_package(files []file0, version string, dir string) {
+func create_package(files []file2, version string, dir string) {
 	err := os.MkdirAll(filepath.Join(dir, PACKAGE_PATH), os.ModePerm)
 
 	if err != nil {
@@ -121,33 +115,22 @@ func create_package(files []file0, version string, dir string) {
 
 	defer output.Close()
 
-	files_with_version := []file1{}
-
 	for _, file := range files {
-		version := "~"
-
 		existing_file_pointer := search_file(existing_files, file.hash)
 		if existing_file_pointer != nil {
 			fmt.Println("found existing file for " + file.path)
 			existing_file := *existing_file_pointer
-			version = existing_file.version
+			file.version = existing_file.version
 		} else {
 			fmt.Println("did not find existing file for " + file.path)
 		}
 
-		new_file := file1{
-			file.path,
-			file.hash,
-			file.size,
-			version,
-		}
-		files_with_version = append(files_with_version, new_file)
-		file_entry := fmt.Sprintf("%s\t%x\t%d\t%s\n", file.path, file.hash, file.size, new_file.version)
+		file_entry := fmt.Sprintf("%s\t%x\t%d\t%s\n", file.path, file.hash, file.size, file.version)
 		output.WriteString(file_entry)
 	}
 
-	for _, file := range files_with_version {
-		if file.version != "~" {
+	for _, file := range files {
+		if file.version != CURRENT_VERSION {
 			continue
 		}
 
@@ -157,13 +140,13 @@ func create_package(files []file0, version string, dir string) {
 			panic(err)
 		}
 
-		output.WriteString("~")
+		output.WriteString(CURRENT_VERSION)
 		io.Copy(output, input)
 		output.WriteString("\n")
 	}
 }
 
-func read_packages(dir string) []file1 {
+func read_packages(dir string) []file2 {
 	package_path := filepath.Join(dir, PACKAGE_PATH)
 	package_entries, err := ioutil.ReadDir(package_path)
 
@@ -171,7 +154,7 @@ func read_packages(dir string) []file1 {
 		panic(err)
 	}
 
-	files := []file1{}
+	files := []file2{}
 
 	for _, package_entry := range package_entries {
 		file, err := os.ReadFile(filepath.Join(package_path, package_entry.Name()))
@@ -180,7 +163,7 @@ func read_packages(dir string) []file1 {
 			panic(err)
 		}
 
-		file_prefix_byte := byte('~')
+		file_prefix_byte := byte(CURRENT_VERSION[0])
 		new_line_byte := byte('\n')
 
 		file_index_at := 0
@@ -221,7 +204,7 @@ func read_packages(dir string) []file1 {
 				version = package_entry.Name()
 			}
 
-			file := file1{
+			file := file2{
 				file_infos_str[0],
 				file_hash,
 				int64(file_size),
@@ -251,7 +234,7 @@ func main() {
 	}
 
 	if action == "package" {
-		files := []file0{}
+		files := []file2{}
 		scan_dir(&files, dir, "")
 		version := get_version(files)
 		create_package(files, version, dir)
