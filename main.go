@@ -73,14 +73,22 @@ func build_index(files []file0) string {
 	index_str := ""
 
 	for i, file := range files {
+
 		index_str = index_str + fmt.Sprintf(
-			"%s\t%s\t%s\t%032d\t%d",
+			"%s\t%s\t%s\t%d\t%d",
 			file.path,
 			file.hash,
 			file.version,
 			file.offset,
 			file.size,
 		)
+
+		// we want to make sure the index entry length is not changing
+		// when we add the offset values
+		// we do that by padding the line with spaces
+		missing_offset := 32 - len(fmt.Sprintf("%d", file.offset))
+		padding_str := strings.Repeat(" ", missing_offset)
+		index_str = index_str + "\t" + padding_str
 
 		if i != len(files)-1 {
 			index_str = index_str + "\n"
