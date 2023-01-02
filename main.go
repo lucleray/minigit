@@ -81,12 +81,37 @@ func get_version(files []file0) string {
 	return hex.EncodeToString(hash.Sum(nil))
 }
 
+func search_file(files []file1, hash []byte) *file1 {
+	for _, file := range files {
+
+		if len(hash) != len(file.hash) {
+			continue
+		}
+
+		same_hash := true
+		for i, c := range hash {
+			if c != file.hash[i] {
+				same_hash = false
+				break
+			}
+		}
+
+		if same_hash {
+			return &file
+		}
+	}
+
+	return nil
+}
+
 func create_package(files []file0, version string, dir string) {
 	err := os.MkdirAll(filepath.Join(dir, PACKAGE_PATH), os.ModePerm)
 
 	if err != nil {
 		panic(err)
 	}
+
+	existing_files := read_packages(dir)
 
 	output, err := os.Create(filepath.Join(dir, PACKAGE_PATH, version))
 
@@ -96,12 +121,36 @@ func create_package(files []file0, version string, dir string) {
 
 	defer output.Close()
 
+	files_with_version := []file1{}
+
 	for _, file := range files {
-		file_entry := fmt.Sprintf("%s\t%x\t%d\t~\n", file.path, file.hash, file.size)
+		version := "~"
+
+		existing_file_pointer := search_file(existing_files, file.hash)
+		if existing_file_pointer != nil {
+			fmt.Println("found existing file for " + file.path)
+			existing_file := *existing_file_pointer
+			version = existing_file.version
+		} else {
+			fmt.Println("did not find existing file for " + file.path)
+		}
+
+		new_file := file1{
+			file.path,
+			file.hash,
+			file.size,
+			version,
+		}
+		files_with_version = append(files_with_version, new_file)
+		file_entry := fmt.Sprintf("%s\t%x\t%d\t%s\n", file.path, file.hash, file.size, new_file.version)
 		output.WriteString(file_entry)
 	}
 
-	for _, file := range files {
+	for _, file := range files_with_version {
+		if file.version != "~" {
+			continue
+		}
+
 		input, err := os.Open(filepath.Join(dir, file.path))
 
 		if err != nil {
@@ -167,11 +216,16 @@ func read_packages(dir string) []file1 {
 				panic(err_hash)
 			}
 
+			version := file_infos_str[3]
+			if file_infos_str[3] == "~" {
+				version = package_entry.Name()
+			}
+
 			file := file1{
 				file_infos_str[0],
 				file_hash,
 				int64(file_size),
-				file_infos_str[3],
+				version,
 			}
 
 			files = append(files, file)
