@@ -15,6 +15,7 @@ import (
 type file2 struct {
 	path    string
 	hash    string
+	offset  int
 	size    int64
 	version string
 }
@@ -60,9 +61,10 @@ func scan_dir(files *[]file2, dir string, subdir string) {
 
 		file_path := filepath.Join(subdir, entry.Name())
 		file_hash := get_file_hash(filepath.Join(dir, subdir, entry.Name()))
+		file_offset := -1
 		file_size := entry.Size()
 
-		*files = append(*files, file2{file_path, file_hash, file_size, CURRENT_VERSION})
+		*files = append(*files, file2{file_path, file_hash, file_offset, file_size, CURRENT_VERSION})
 	}
 }
 
@@ -71,9 +73,10 @@ func build_index(files []file2) string {
 
 	for i, file := range files {
 		index_str = index_str + fmt.Sprintf(
-			"%s\t%s\t%d\t%s",
+			"%s\t%s\t%d\t%d\t%s",
 			file.path,
 			file.hash,
+			file.offset,
 			file.size,
 			file.version,
 		)
@@ -201,23 +204,28 @@ func read_packages(dir string, exclude_versions []string) []file2 {
 			}
 
 			// format is:
-			// <path>	<hash> <size> <version>
+			// <path>	<hash> <offset> <size> <version>
 			file_infos_str := strings.Split(file_str, "\t")
 
-			file_size, err_size := strconv.Atoi(file_infos_str[2])
+			file_offset, err_offset := strconv.Atoi(file_infos_str[2])
+			file_size, err_size := strconv.Atoi(file_infos_str[3])
 
+			if err_offset != nil {
+				panic(err_offset)
+			}
 			if err_size != nil {
 				panic(err_size)
 			}
 
 			version := file_infos_str[3]
-			if file_infos_str[3] == CURRENT_VERSION {
+			if file_infos_str[4] == CURRENT_VERSION {
 				version = package_entry.Name()
 			}
 
 			file := file2{
 				file_infos_str[0],
 				file_infos_str[1],
+				file_offset,
 				int64(file_size),
 				version,
 			}
