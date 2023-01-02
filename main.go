@@ -17,7 +17,7 @@ type file0 struct {
 	hash    string
 	version string
 	offset  int
-	size    int64
+	size    int
 }
 
 const PACKAGE_PATH = ".minigit"
@@ -62,7 +62,7 @@ func scan_dir(files *[]file0, dir string, subdir string) {
 		file_path := filepath.Join(subdir, entry.Name())
 		file_hash := get_file_hash(filepath.Join(dir, subdir, entry.Name()))
 		file_offset := -1
-		file_size := entry.Size()
+		file_size := int(entry.Size())
 
 		*files = append(*files, file0{file_path, file_hash, CURRENT_VERSION, file_offset, file_size})
 	}
@@ -242,7 +242,7 @@ func read_packages(dir string, exclude_versions []string) []file0 {
 				file_infos_str[1],
 				version,
 				file_offset,
-				int64(file_size),
+				file_size,
 			}
 
 			files = append(files, file)
