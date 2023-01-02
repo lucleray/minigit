@@ -12,10 +12,17 @@ import (
 	"strings"
 )
 
-type file2 struct {
+type file0 struct {
 	path string
 	hash []byte
 	size int64
+}
+
+type file1 struct {
+	path    string
+	hash    []byte
+	size    int64
+	version string
 }
 
 const PACKAGE_PATH = ".minigit"
@@ -39,7 +46,7 @@ func get_file_hash(path string) []byte {
 	return hash.Sum(nil)
 }
 
-func scan_dir(files *[]file2, dir string, subdir string) {
+func scan_dir(files *[]file0, dir string, subdir string) {
 	entries, err := ioutil.ReadDir(filepath.Join(dir, subdir))
 
 	if err != nil {
@@ -60,11 +67,11 @@ func scan_dir(files *[]file2, dir string, subdir string) {
 		file_hash := get_file_hash(filepath.Join(dir, subdir, entry.Name()))
 		file_size := entry.Size()
 
-		*files = append(*files, file2{file_path, file_hash, file_size})
+		*files = append(*files, file0{file_path, file_hash, file_size})
 	}
 }
 
-func get_version(files []file2) string {
+func get_version(files []file0) string {
 	hash := md5.New()
 
 	for _, file := range files {
@@ -74,7 +81,7 @@ func get_version(files []file2) string {
 	return hex.EncodeToString(hash.Sum(nil))
 }
 
-func create_package(files []file2, version string, dir string) {
+func create_package(files []file0, version string, dir string) {
 	err := os.MkdirAll(filepath.Join(dir, PACKAGE_PATH), os.ModePerm)
 
 	if err != nil {
@@ -90,7 +97,7 @@ func create_package(files []file2, version string, dir string) {
 	defer output.Close()
 
 	for _, file := range files {
-		file_entry := fmt.Sprintf("%s\t%x\t%d\n", file.path, file.hash, file.size)
+		file_entry := fmt.Sprintf("%s\t%x\t%d\t%s\n", file.path, file.hash, file.size, version)
 		output.WriteString(file_entry)
 	}
 
@@ -107,7 +114,7 @@ func create_package(files []file2, version string, dir string) {
 	}
 }
 
-func read_package(dir string) []file2 {
+func read_package(dir string) []file1 {
 	package_path := filepath.Join(dir, PACKAGE_PATH)
 	package_entries, err := ioutil.ReadDir(package_path)
 
@@ -115,7 +122,7 @@ func read_package(dir string) []file2 {
 		panic(err)
 	}
 
-	files := []file2{}
+	files := []file1{}
 
 	for _, package_entry := range package_entries {
 		file, err := os.ReadFile(filepath.Join(package_path, package_entry.Name()))
@@ -142,6 +149,8 @@ func read_package(dir string) []file2 {
 				continue
 			}
 
+			// format is:
+			// <path>	<hash> <size> <version>
 			file_infos_str := strings.Split(file_str, "\t")
 
 			file_size, err_size := strconv.Atoi(file_infos_str[2])
@@ -154,10 +163,11 @@ func read_package(dir string) []file2 {
 				panic(err_hash)
 			}
 
-			file := file2{
+			file := file1{
 				file_infos_str[0],
 				file_hash,
 				int64(file_size),
+				file_infos_str[3],
 			}
 
 			files = append(files, file)
@@ -183,7 +193,7 @@ func main() {
 	}
 
 	if action == "package" {
-		files := []file2{}
+		files := []file0{}
 		scan_dir(&files, dir, "")
 		version := get_version(files)
 		create_package(files, version, dir)
@@ -194,7 +204,7 @@ func main() {
 		files := read_package(dir)
 
 		for _, file := range files {
-			fmt.Printf("%-20s\t%x\t%-5d\n", file.path, file.hash, file.size)
+			fmt.Printf("%-20s\t%x\t%-5d\t%s\n", file.path, file.hash, file.size, file.version)
 		}
 	}
 }
