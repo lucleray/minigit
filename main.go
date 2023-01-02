@@ -93,9 +93,9 @@ func get_version(files []file2) string {
 	return hex.EncodeToString(hash.Sum(nil))
 }
 
-func search_file(files []file2, hash string) *file2 {
+func search_file(files []file2, path string, hash string) *file2 {
 	for _, file := range files {
-		if hash == file.hash {
+		if hash == file.hash && path == file.path {
 			return &file
 		}
 	}
@@ -121,7 +121,7 @@ func create_package(files []file2, version string, dir string) {
 	defer output.Close()
 
 	for i, file := range files {
-		existing_file_pointer := search_file(existing_files, file.hash)
+		existing_file_pointer := search_file(existing_files, file.path, file.hash)
 		if existing_file_pointer != nil {
 			existing_file := *existing_file_pointer
 
