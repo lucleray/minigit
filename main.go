@@ -104,7 +104,7 @@ func get_version(files []file0) string {
 
 func search_file(files []file0, path string, hash string) (bool, string, int) {
 	for _, file := range files {
-		if hash == file.hash && path == file.path {
+		if hash == file.hash {
 			return true, file.version, file.offset
 		}
 	}
