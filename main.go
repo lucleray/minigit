@@ -275,6 +275,11 @@ func inspect(dir string, exclude_versions []string) []file0 {
 func unpack(version string, dir string) {
 	// TODO: implement
 	fmt.Println("Unpacking version", version)
+
+	// Read package index (func inspect_version)
+	// Remove all folder/files (func reset_dir)
+	// For each file, read content (func read_file) and write
+	// Done!
 }
 
 func main() {
