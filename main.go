@@ -116,7 +116,7 @@ func create_package(files []file2, version string, dir string) {
 		panic(err)
 	}
 
-	existing_files := read_packages(dir)
+	existing_files := read_packages(dir, []string{version})
 
 	output, err := os.Create(filepath.Join(dir, PACKAGE_PATH, version))
 
@@ -148,7 +148,16 @@ func create_package(files []file2, version string, dir string) {
 	}
 }
 
-func read_packages(dir string) []file2 {
+func has_version(exclude_versions []string, version string) bool {
+	for _, exclude_version := range exclude_versions {
+		if exclude_version == version {
+			return true
+		}
+	}
+	return false
+}
+
+func read_packages(dir string, exclude_versions []string) []file2 {
 	package_path := filepath.Join(dir, PACKAGE_PATH)
 	package_entries, err := ioutil.ReadDir(package_path)
 
@@ -159,6 +168,10 @@ func read_packages(dir string) []file2 {
 	files := []file2{}
 
 	for _, package_entry := range package_entries {
+		if has_version(exclude_versions, package_entry.Name()) {
+			continue
+		}
+
 		file, err := os.ReadFile(filepath.Join(package_path, package_entry.Name()))
 
 		if err != nil {
@@ -240,7 +253,7 @@ func main() {
 	}
 
 	if action == "inspect" {
-		files := read_packages(dir)
+		files := read_packages(dir, []string{})
 
 		for _, file := range files {
 			fmt.Printf("%-20s\t%x\t%-5d\t%s\n", file.path, file.hash, file.size, file.version)
