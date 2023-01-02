@@ -97,7 +97,7 @@ func create_package(files []file0, version string, dir string) {
 	defer output.Close()
 
 	for _, file := range files {
-		file_entry := fmt.Sprintf("%s\t%x\t%d\t%s\n", file.path, file.hash, file.size, version)
+		file_entry := fmt.Sprintf("%s\t%x\t%d\t~\n", file.path, file.hash, file.size)
 		output.WriteString(file_entry)
 	}
 
@@ -132,13 +132,17 @@ func read_packages(dir string) []file1 {
 		}
 
 		file_prefix_byte := byte('~')
+		new_line_byte := byte('\n')
 
 		file_index_at := 0
+		first_char_of_line := true
 		for i, c := range file {
-			if c == file_prefix_byte {
+			if first_char_of_line && c == file_prefix_byte {
 				file_index_at = i
 				break
 			}
+
+			first_char_of_line = (c == new_line_byte)
 		}
 
 		index_str := string(file[:file_index_at])
