@@ -22,6 +22,7 @@ type file0 struct {
 
 const PACKAGE_PATH = ".minigit"
 const CURRENT_VERSION = "~"
+const SEPARATOR_INDEX_CONTENT = "\n\n"
 
 func get_file_hash(path string) string {
 	file, err := os.Open(path)
@@ -129,26 +130,37 @@ func create_package(files []file0, version string, dir string) {
 
 	defer output.Close()
 
-	current_offset := 0
-	files_to_insert := []file0{}
-
+	// search files and point to already packaged files when available
 	for i, file := range files {
 		found, version, offset := search_file(existing_files, file.path, file.hash)
-
 		if found {
 			files[i].version = version
 			files[i].offset = offset
-		} else {
+		}
+	}
+
+	// adjust offsets
+	index_size := len(build_index(files)) + len(SEPARATOR_INDEX_CONTENT)
+	current_offset := index_size
+	for i, file := range files {
+		if file.version == CURRENT_VERSION {
 			files[i].offset = current_offset
 			current_offset = files[i].offset + int(file.size)
-			files_to_insert = append(files_to_insert, files[i])
 		}
 	}
 
 	output.WriteString(build_index(files))
 
+	// insert file content
+	files_to_insert := []file0{}
+	for _, file := range files {
+		if file.version == CURRENT_VERSION {
+			files_to_insert = append(files_to_insert, file)
+		}
+	}
+
 	if len(files_to_insert) != 0 {
-		output.WriteString("\n\n")
+		output.WriteString(SEPARATOR_INDEX_CONTENT)
 	}
 
 	for _, file := range files_to_insert {
