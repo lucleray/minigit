@@ -130,6 +130,7 @@ func create_package(files []file0, version string, dir string) {
 	defer output.Close()
 
 	current_offset := 0
+	files_to_insert := []file0{}
 
 	for i, file := range files {
 		found, version, offset := search_file(existing_files, file.path, file.hash)
@@ -138,15 +139,19 @@ func create_package(files []file0, version string, dir string) {
 			files[i].version = version
 			files[i].offset = offset
 		} else {
-			files[i].version = CURRENT_VERSION
 			files[i].offset = current_offset
 			current_offset = files[i].offset + int(file.size)
+			files_to_insert = append(files_to_insert, files[i])
 		}
 	}
 
-	output.WriteString(build_index(files) + "\n\n")
+	output.WriteString(build_index(files))
 
-	for _, file := range files {
+	if len(files_to_insert) != 0 {
+		output.WriteString("\n\n")
+	}
+
+	for _, file := range files_to_insert {
 		if file.version != CURRENT_VERSION {
 			continue
 		}
@@ -191,30 +196,31 @@ func read_packages(dir string, exclude_versions []string) []file0 {
 			panic(err)
 		}
 
+		index_lines := []string{}
 		new_line_byte := byte('\n')
+		line_start_at := 0
 
-		file_index_at := 0
-		first_char_of_line := true
 		for i, c := range file {
-			if first_char_of_line && c == new_line_byte {
-				file_index_at = i
+			// detect an empty line
+			if c == new_line_byte && line_start_at == i {
 				break
 			}
 
-			first_char_of_line = (c == new_line_byte)
+			// detect end of line or end of file
+			if c == new_line_byte || i == len(file)-1 {
+				index_lines = append(index_lines, string(file[line_start_at:i]))
+				line_start_at = i + 1
+			}
 		}
 
-		index_str := string(file[:file_index_at])
-		files_str := strings.Split(index_str, "\n")
-
-		for _, file_str := range files_str {
-			if len(file_str) == 0 {
+		for _, index_line := range index_lines {
+			if len(index_line) == 0 {
 				continue
 			}
 
 			// format is:
 			// <path>	<hash> <version> <offset> <size>
-			file_infos_str := strings.Split(file_str, "\t")
+			file_infos_str := strings.Split(index_line, "\t")
 
 			version := file_infos_str[2]
 			if version == CURRENT_VERSION {
