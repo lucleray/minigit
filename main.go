@@ -93,14 +93,14 @@ func get_version(files []file2) string {
 	return hex.EncodeToString(hash.Sum(nil))
 }
 
-func search_file(files []file2, path string, hash string) *file2 {
+func search_file(files []file2, path string, hash string) string {
 	for _, file := range files {
 		if hash == file.hash && path == file.path {
-			return &file
+			return file.version
 		}
 	}
 
-	return nil
+	return CURRENT_VERSION
 }
 
 func create_package(files []file2, version string, dir string) {
@@ -121,14 +121,11 @@ func create_package(files []file2, version string, dir string) {
 	defer output.Close()
 
 	for i, file := range files {
-		existing_file_pointer := search_file(existing_files, file.path, file.hash)
-		if existing_file_pointer != nil {
-			existing_file := *existing_file_pointer
+		version := search_file(existing_files, file.path, file.hash)
 
-			// TODO: refactor to something better
-			file.version = existing_file.version
-			files[i].version = existing_file.version
-		}
+		// TODO: refactor to something better
+		file.version = version
+		files[i].version = version
 
 		file_entry := fmt.Sprintf("%s\t%x\t%d\t%s\n", file.path, file.hash, file.size, file.version)
 		output.WriteString(file_entry)
