@@ -14,7 +14,7 @@ import (
 
 type file2 struct {
 	path    string
-	hash    []byte
+	hash    string
 	size    int64
 	version string
 }
@@ -22,7 +22,7 @@ type file2 struct {
 const PACKAGE_PATH = ".minigit"
 const CURRENT_VERSION = "~"
 
-func get_file_hash(path string) []byte {
+func get_file_hash(path string) string {
 	file, err := os.Open(path)
 
 	if err != nil {
@@ -38,7 +38,7 @@ func get_file_hash(path string) []byte {
 		panic(err)
 	}
 
-	return hash.Sum(nil)
+	return hex.EncodeToString(hash.Sum(nil))
 }
 
 func scan_dir(files *[]file2, dir string, subdir string) {
@@ -93,21 +93,9 @@ func get_version(files []file2) string {
 	return hex.EncodeToString(hash.Sum(nil))
 }
 
-func search_file(files []file2, hash []byte) *file2 {
+func search_file(files []file2, hash string) *file2 {
 	for _, file := range files {
-		if len(hash) != len(file.hash) {
-			continue
-		}
-
-		same_hash := true
-		for i, c := range hash {
-			if c != file.hash[i] {
-				same_hash = false
-				break
-			}
-		}
-
-		if same_hash {
+		if hash == file.hash {
 			return &file
 		}
 	}
@@ -207,13 +195,9 @@ func read_packages(dir string) []file2 {
 			file_infos_str := strings.Split(file_str, "\t")
 
 			file_size, err_size := strconv.Atoi(file_infos_str[2])
-			file_hash, err_hash := hex.DecodeString(file_infos_str[1])
 
 			if err_size != nil {
 				panic(err_size)
-			}
-			if err_hash != nil {
-				panic(err_hash)
 			}
 
 			version := file_infos_str[3]
@@ -223,7 +207,7 @@ func read_packages(dir string) []file2 {
 
 			file := file2{
 				file_infos_str[0],
-				file_hash,
+				file_infos_str[1],
 				int64(file_size),
 				version,
 			}
