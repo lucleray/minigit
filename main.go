@@ -70,7 +70,7 @@ func build_index(files []file2) string {
 	index_str := ""
 	for _, file := range files {
 		index_str = index_str + fmt.Sprintf(
-			"%s\t%x\t%d\t%s\n",
+			"%s\t%s\t%d\t%s\n",
 			file.path,
 			file.hash,
 			file.size,
@@ -127,7 +127,7 @@ func create_package(files []file2, version string, dir string) {
 		file.version = version
 		files[i].version = version
 
-		file_entry := fmt.Sprintf("%s\t%x\t%d\t%s\n", file.path, file.hash, file.size, file.version)
+		file_entry := fmt.Sprintf("%s\t%s\t%d\t%s\n", file.path, file.hash, file.size, file.version)
 		output.WriteString(file_entry)
 	}
 
