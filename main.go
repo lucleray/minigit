@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/md5"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -133,15 +134,19 @@ func read_package(dir string) []file2 {
 
 			file_infos_str := strings.Split(file_str, "\t")
 
-			file_size, err := strconv.Atoi(file_infos_str[2])
+			file_size, err_size := strconv.Atoi(file_infos_str[2])
+			file_hash, err_hash := hex.DecodeString(file_infos_str[1])
 
-			if err != nil {
-				panic(err)
+			if err_size != nil {
+				panic(err_size)
+			}
+			if err_hash != nil {
+				panic(err_hash)
 			}
 
 			file := file2{
 				file_infos_str[0],
-				[]byte(file_infos_str[1]),
+				file_hash,
 				int64(file_size),
 			}
 
