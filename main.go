@@ -153,17 +153,23 @@ func read_package(dir string) []file2 {
 }
 
 func main() {
-	osArgs := os.Args[1:]
-	fmt.Println(osArgs)
+	os_args := os.Args[1:]
+	fmt.Println(os_args)
 
-	if len(osArgs) != 2 {
-		panic("incorrect usage")
+	action := "package"
+	dir := ""
+
+	for _, arg := range os_args {
+		if strings.HasPrefix(arg, "--dir=") {
+			dir = arg[len("--dir="):]
+		}
+
+		if arg == "--inspect" || arg == "-i" {
+			action = "inspect"
+		}
 	}
 
-	action := osArgs[0]
-	dir := osArgs[1]
-
-	if action == "package" || action == "p" {
+	if action == "package" {
 		files := []file2{}
 
 		scan_dir(&files, dir, "")
@@ -175,7 +181,7 @@ func main() {
 		create_package(files, dir)
 	}
 
-	if action == "inspect" || action == "i" {
+	if action == "inspect" {
 		files := read_package(dir)
 
 		for _, file := range files {

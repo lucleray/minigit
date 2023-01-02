@@ -1,16 +1,20 @@
-### Package a folder
+To package the current folder:
 
 ```
-minigit package <directory>
+minigit
 ```
 
-### Inspect a packaged folder
-
+Optionally, you can also pass a directory:
 ```
-minigit inspect <directory>
+minigit --dir=my_folder
 ```
 
-### Format of package entry
+To inspect an existing package, you can use:
+```
+minigit --inspect
+```
+
+### Format of a package entry
 
 Each package entry is composed of an index followed by file contents.
 
