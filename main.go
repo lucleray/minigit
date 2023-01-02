@@ -144,7 +144,7 @@ func create_package(files []file0, version string, dir string) {
 		}
 	}
 
-	output.WriteString(build_index(files) + "\n~\n")
+	output.WriteString(build_index(files) + "\n\n")
 
 	for _, file := range files {
 		if file.version != CURRENT_VERSION {
@@ -191,13 +191,12 @@ func read_packages(dir string, exclude_versions []string) []file0 {
 			panic(err)
 		}
 
-		file_prefix_byte := byte(CURRENT_VERSION[0])
 		new_line_byte := byte('\n')
 
 		file_index_at := 0
 		first_char_of_line := true
 		for i, c := range file {
-			if first_char_of_line && c == file_prefix_byte {
+			if first_char_of_line && c == new_line_byte {
 				file_index_at = i
 				break
 			}
