@@ -158,12 +158,10 @@ func read_package(dir string) []file2 {
 }
 
 func main() {
-	os_args := os.Args[1:]
-	fmt.Println(os_args)
-
 	action := "package"
 	dir := ""
 
+	os_args := os.Args[1:]
 	for _, arg := range os_args {
 		if strings.HasPrefix(arg, "--dir=") {
 			dir = arg[len("--dir="):]
@@ -176,13 +174,7 @@ func main() {
 
 	if action == "package" {
 		files := []file2{}
-
 		scan_dir(&files, dir, "")
-
-		for _, file := range files {
-			fmt.Printf("%-20s\t%x\t%-5d\n", file.path, file.hash, file.size)
-		}
-
 		create_package(files, dir)
 	}
 
