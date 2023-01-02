@@ -64,14 +64,24 @@ func scan_dir(files *[]file2, dir string, subdir string) {
 	}
 }
 
-func create_package(files []file2, dir string) {
+func get_version(files []file2) string {
+	hash := md5.New()
+
+	for _, file := range files {
+		hash.Write(file.hash)
+	}
+
+	return hex.EncodeToString(hash.Sum(nil))
+}
+
+func create_package(files []file2, version string, dir string) {
 	err := os.MkdirAll(filepath.Join(dir, PACKAGE_PATH), os.ModePerm)
 
 	if err != nil {
 		panic(err)
 	}
 
-	output, err := os.Create(filepath.Join(dir, PACKAGE_PATH, "output"))
+	output, err := os.Create(filepath.Join(dir, PACKAGE_PATH, version))
 
 	if err != nil {
 		panic(err)
@@ -175,7 +185,9 @@ func main() {
 	if action == "package" {
 		files := []file2{}
 		scan_dir(&files, dir, "")
-		create_package(files, dir)
+		version := get_version(files)
+		create_package(files, version, dir)
+		fmt.Println("📦", version)
 	}
 
 	if action == "inspect" {
