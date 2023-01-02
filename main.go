@@ -73,7 +73,7 @@ func build_index(files []file0) string {
 
 	for i, file := range files {
 		index_str = index_str + fmt.Sprintf(
-			"%s\t%s\t%s\t%d\t%d",
+			"%s\t%s\t%s\t%032d\t%d",
 			file.path,
 			file.hash,
 			file.version,
