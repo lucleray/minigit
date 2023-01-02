@@ -143,9 +143,8 @@ func create_package(files []file2, version string, dir string) {
 			panic(err)
 		}
 
-		output.WriteString(CURRENT_VERSION)
+		output.WriteString("\n" + CURRENT_VERSION)
 		io.Copy(output, input)
-		output.WriteString("\n")
 	}
 }
 
