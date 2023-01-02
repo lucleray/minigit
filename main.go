@@ -51,7 +51,7 @@ func scan_dir(files *[]file0, dir string, subdir string) {
 	}
 
 	for _, entry := range entries {
-		if entry.Name() == ".minigit" {
+		if entry.Name() == PACKAGE_PATH {
 			continue
 		}
 
