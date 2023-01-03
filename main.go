@@ -197,7 +197,7 @@ func has_version(exclude_versions []string, version string) bool {
 	return false
 }
 
-func inspect(dir string, version string) []file0 {
+func inspect(version string, dir string) []file0 {
 	files := []file0{}
 
 	package_path := filepath.Join(dir, PACKAGE_PATH)
@@ -277,21 +277,47 @@ func inspect_all(dir string, exclude_versions []string) []file0 {
 			continue
 		}
 
-		version_files := inspect(dir, package_entry.Name())
+		version_files := inspect(package_entry.Name(), dir)
 		files = append(files, version_files...)
 	}
 
 	return files
 }
 
-func unpack(version string, dir string) {
-	// TODO: implement
-	fmt.Println("Unpacking version", version)
+func unpack_file(file file0, version string, dir string) {
+	input, err := os.Open(filepath.Join(dir, PACKAGE_PATH, version))
 
-	// Read package index (func inspect_version)
-	// Remove all folder/files (func reset_dir)
-	// For each file, read content (func read_file) and write
-	// Done!
+	if err != nil {
+		panic(err)
+	}
+
+	defer input.Close()
+
+	output_path := filepath.Join(dir, file.path)
+	err = os.MkdirAll(filepath.Dir(output_path), os.ModePerm)
+
+	if err != nil {
+		panic(err)
+	}
+
+	output, err := os.Create(filepath.Join(dir, file.path))
+
+	if err != nil {
+		panic(err)
+	}
+
+	defer output.Close()
+
+	input.Seek(int64(file.offset), 0)
+	io.CopyN(output, input, int64(file.size))
+}
+
+func unpack(version string, dir string) {
+	files := inspect(version, dir)
+
+	for _, file := range files {
+		unpack_file(file, version, dir)
+	}
 }
 
 func main() {
