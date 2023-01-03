@@ -24,6 +24,24 @@ const PACKAGE_PATH = ".minigit"
 const CURRENT_VERSION = "~"
 const SEPARATOR_INDEX_CONTENT = "\n\n"
 
+const LOGO = `
+                   ▄
+               ▄███▀██▄▄
+           ▄▓███▄     ▀███▄▄
+       ▄▓██▀   ▀██▓▄      ▀███▄
+       ████▌▄      ▀██▓▄ ▄▄████
+       ██░▒▀███▌▄    ▄████▀  ▓█
+       ██░░░░░▒▀██████▀ ██   ▓█
+       ██░░░░░░░░░██    ██   ▓█
+       ██░░░░░░░░░██    ▀▀   ▓█
+       ██▄░░░░░░░░██        ▄██
+        ▀▀██▓▄░░░░██    ▄▄██▀▀
+            ▀▀██▓▄██▄▄███▀
+                ▀▀███▀
+		 
+
+`
+
 func get_file_hash(path string) string {
 	file, err := os.Open(path)
 
@@ -364,6 +382,10 @@ func main() {
 		if arg == "--inspect" || arg == "-i" {
 			action = "inspect"
 		}
+
+		if arg == "--help" || arg == "-h" {
+			action = "help"
+		}
 	}
 
 	if action == "pack" {
@@ -377,6 +399,10 @@ func main() {
 	if action == "unpack" {
 		// TODO: we could first "pack" in the background, so no files are lost
 		unpack(unpack_version, dir)
+	}
+
+	if action == "help" {
+		fmt.Print(LOGO)
 	}
 
 	if action == "inspect" {
