@@ -199,7 +199,7 @@ func has_version(exclude_versions []string, version string) bool {
 	return false
 }
 
-func inspect(version string, dir string) []file0 {
+func inspect(version string, dir string, exclude_versions []string) []file0 {
 	files := []file0{}
 
 	package_path := filepath.Join(dir, PACKAGE_PATH)
@@ -240,6 +240,10 @@ func inspect(version string, dir string) []file0 {
 			file_version = version
 		}
 
+		if has_version(exclude_versions, file_version) {
+			continue
+		}
+
 		file_offset, err_offset := strconv.Atoi(file_infos_str[3])
 		file_size, err_size := strconv.Atoi(file_infos_str[4])
 
@@ -275,11 +279,7 @@ func inspect_all(dir string, exclude_versions []string) []file0 {
 	files := []file0{}
 
 	for _, package_entry := range package_entries {
-		if has_version(exclude_versions, package_entry.Name()) {
-			continue
-		}
-
-		version_files := inspect(package_entry.Name(), dir)
+		version_files := inspect(package_entry.Name(), dir, exclude_versions)
 		files = append(files, version_files...)
 	}
 
@@ -331,7 +331,7 @@ func reset_dir(dir string) {
 }
 
 func unpack(version string, dir string) {
-	files := inspect(version, dir)
+	files := inspect(version, dir, []string{})
 
 	reset_dir(dir)
 
