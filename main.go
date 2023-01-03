@@ -335,6 +335,10 @@ func main() {
 			unpack_version = arg[len("--unpack="):]
 		}
 
+		if unpack_version != "" && strings.HasPrefix(arg, "-u=") {
+			unpack_version = arg[len("-u="):]
+		}
+
 		if arg == "--inspect" || arg == "-i" {
 			action = "inspect"
 		}
