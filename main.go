@@ -341,7 +341,7 @@ func unpack(version string, dir string) {
 }
 
 func main() {
-	action := "package"
+	action := "pack"
 	dir := ""
 	unpack_version := ""
 
@@ -366,7 +366,7 @@ func main() {
 		}
 	}
 
-	if action == "package" {
+	if action == "pack" {
 		files := []file0{}
 		scan(&files, dir, "")
 		pack_version := get_version(files)
