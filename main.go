@@ -352,10 +352,12 @@ func main() {
 		}
 
 		if strings.HasPrefix(arg, "--unpack=") {
+			action = "unpack"
 			unpack_version = arg[len("--unpack="):]
 		}
 
 		if unpack_version == "" && strings.HasPrefix(arg, "-u=") {
+			action = "unpack"
 			unpack_version = arg[len("-u="):]
 		}
 
@@ -372,7 +374,8 @@ func main() {
 		fmt.Println("📦", pack_version)
 	}
 
-	if len(unpack_version) > 0 {
+	if action == "unpack" {
+		// TODO: we could first "pack" in the background, so no files are lost
 		unpack(unpack_version, dir)
 	}
 
