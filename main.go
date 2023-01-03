@@ -122,6 +122,7 @@ func search_file(files []file0, path string, hash string) (bool, string, int) {
 	return false, "", -1
 }
 
+// TODO: handle case where directory is empty
 func pack(files []file0, version string, dir string) {
 	err := os.MkdirAll(filepath.Join(dir, PACKAGE_PATH), os.ModePerm)
 
@@ -285,8 +286,8 @@ func inspect_all(dir string, exclude_versions []string) []file0 {
 	return files
 }
 
-func unpack_file(file file0, version string, dir string) {
-	input, err := os.Open(filepath.Join(dir, PACKAGE_PATH, version))
+func unpack_file(file file0, dir string) {
+	input, err := os.Open(filepath.Join(dir, PACKAGE_PATH, file.version))
 
 	if err != nil {
 		panic(err)
@@ -335,7 +336,7 @@ func unpack(version string, dir string) {
 	reset_dir(dir)
 
 	for _, file := range files {
-		unpack_file(file, version, dir)
+		unpack_file(file, dir)
 	}
 }
 
@@ -354,7 +355,7 @@ func main() {
 			unpack_version = arg[len("--unpack="):]
 		}
 
-		if unpack_version != "" && strings.HasPrefix(arg, "-u=") {
+		if unpack_version == "" && strings.HasPrefix(arg, "-u=") {
 			unpack_version = arg[len("-u="):]
 		}
 
