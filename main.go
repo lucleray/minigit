@@ -128,7 +128,7 @@ func pack(files []file0, version string, dir string) {
 		panic(err)
 	}
 
-	existing_files := inspect(dir, []string{version})
+	existing_files := inspect_all(dir, []string{version})
 
 	output, err := os.Create(filepath.Join(dir, PACKAGE_PATH, version))
 
@@ -195,7 +195,72 @@ func has_version(exclude_versions []string, version string) bool {
 	return false
 }
 
-func inspect(dir string, exclude_versions []string) []file0 {
+func inspect(dir string, version string) []file0 {
+	files := []file0{}
+
+	package_path := filepath.Join(dir, PACKAGE_PATH)
+	file, err := os.ReadFile(filepath.Join(package_path, version))
+
+	if err != nil {
+		panic(err)
+	}
+
+	index_lines := []string{}
+	new_line_byte := byte('\n')
+	line_start_at := 0
+
+	for i, c := range file {
+		// detect an empty line
+		if c == new_line_byte && line_start_at == i {
+			break
+		}
+
+		// detect end of line or end of file
+		if c == new_line_byte || i == len(file)-1 {
+			index_lines = append(index_lines, string(file[line_start_at:i]))
+			line_start_at = i + 1
+		}
+	}
+
+	for _, index_line := range index_lines {
+		if len(index_line) == 0 {
+			continue
+		}
+
+		// format is:
+		// <path>	<hash> <version> <offset> <size>
+		file_infos_str := strings.Split(index_line, "\t")
+
+		file_version := file_infos_str[2]
+		if file_version == CURRENT_VERSION {
+			file_version = version
+		}
+
+		file_offset, err_offset := strconv.Atoi(file_infos_str[3])
+		file_size, err_size := strconv.Atoi(file_infos_str[4])
+
+		if err_offset != nil {
+			panic(err_offset)
+		}
+		if err_size != nil {
+			panic(err_size)
+		}
+
+		file := file0{
+			file_infos_str[0],
+			file_infos_str[1],
+			file_version,
+			file_offset,
+			file_size,
+		}
+
+		files = append(files, file)
+	}
+
+	return files
+}
+
+func inspect_all(dir string, exclude_versions []string) []file0 {
 	package_path := filepath.Join(dir, PACKAGE_PATH)
 	package_entries, err := ioutil.ReadDir(package_path)
 
@@ -210,63 +275,8 @@ func inspect(dir string, exclude_versions []string) []file0 {
 			continue
 		}
 
-		file, err := os.ReadFile(filepath.Join(package_path, package_entry.Name()))
-
-		if err != nil {
-			panic(err)
-		}
-
-		index_lines := []string{}
-		new_line_byte := byte('\n')
-		line_start_at := 0
-
-		for i, c := range file {
-			// detect an empty line
-			if c == new_line_byte && line_start_at == i {
-				break
-			}
-
-			// detect end of line or end of file
-			if c == new_line_byte || i == len(file)-1 {
-				index_lines = append(index_lines, string(file[line_start_at:i]))
-				line_start_at = i + 1
-			}
-		}
-
-		for _, index_line := range index_lines {
-			if len(index_line) == 0 {
-				continue
-			}
-
-			// format is:
-			// <path>	<hash> <version> <offset> <size>
-			file_infos_str := strings.Split(index_line, "\t")
-
-			version := file_infos_str[2]
-			if version == CURRENT_VERSION {
-				version = package_entry.Name()
-			}
-
-			file_offset, err_offset := strconv.Atoi(file_infos_str[3])
-			file_size, err_size := strconv.Atoi(file_infos_str[4])
-
-			if err_offset != nil {
-				panic(err_offset)
-			}
-			if err_size != nil {
-				panic(err_size)
-			}
-
-			file := file0{
-				file_infos_str[0],
-				file_infos_str[1],
-				version,
-				file_offset,
-				file_size,
-			}
-
-			files = append(files, file)
-		}
+		version_files := inspect(dir, package_entry.Name())
+		files = append(files, version_files...)
 	}
 
 	return files
@@ -315,7 +325,7 @@ func main() {
 	}
 
 	if action == "inspect" {
-		files := inspect(dir, []string{})
+		files := inspect_all(dir, []string{})
 		for _, file := range files {
 			fmt.Printf(
 				"%-20s\t%s\t%s\t%-5d\t%-5d\n",
