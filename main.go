@@ -51,6 +51,7 @@ func scan(files *[]file0, dir string, subdir string) {
 	}
 
 	for _, entry := range entries {
+		// TODO: only exclude in root dir, maybe?
 		if entry.Name() == PACKAGE_PATH {
 			continue
 		}
@@ -312,8 +313,26 @@ func unpack_file(file file0, version string, dir string) {
 	io.CopyN(output, input, int64(file.size))
 }
 
+func reset_dir(dir string) {
+	entries, err := ioutil.ReadDir(filepath.Join(dir))
+
+	if err != nil {
+		panic(err)
+	}
+
+	for _, entry := range entries {
+		if entry.Name() == PACKAGE_PATH {
+			continue
+		}
+
+		os.RemoveAll(filepath.Join(dir, entry.Name()))
+	}
+}
+
 func unpack(version string, dir string) {
 	files := inspect(version, dir)
+
+	reset_dir(dir)
 
 	for _, file := range files {
 		unpack_file(file, version, dir)
