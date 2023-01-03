@@ -20,7 +20,7 @@ type file0 struct {
 	size    int
 }
 
-const PACKAGE_PATH = ".minigit"
+const PACKAGE_PATH = ".pack"
 const CURRENT_VERSION = "~"
 const SEPARATOR_INDEX_CONTENT = "\n\n"
 

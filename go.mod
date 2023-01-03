@@ -1,3 +1,3 @@
-module github.com/lucleray/minigit
+module github.com/lucleray/pack
 
 go 1.18

@@ -17,22 +17,22 @@
 To package the current folder:
 
 ```
-minigit
+pack
 ```
 
 Optionally, you can also pass a directory:
 ```
-minigit --dir=my_folder
+pack --dir=my_folder
 ```
 
 To inspect an existing package, you can use:
 ```
-minigit --inspect
+pack --inspect
 ```
 
 To unpack a version:
 ```
-minigit --unpack=<version>
+pack --unpack=<version>
 ```
 
 ### Format of a package entry
