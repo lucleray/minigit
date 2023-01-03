@@ -182,6 +182,8 @@ func pack(files []file0, version string, dir string) {
 			panic(err)
 		}
 
+		defer input.Close()
+
 		io.Copy(output, input)
 	}
 }
